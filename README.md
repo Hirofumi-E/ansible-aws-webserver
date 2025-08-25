@@ -1,4 +1,3 @@
-
 # AWS Webサーバーデプロイプロジェクト
 
 このプロジェクトは、Ansibleを使ってAWSのEC2インスタンスにWebサーバーを自動デプロイするものです。
@@ -9,10 +8,17 @@
 
 ---
 
-## トラブルシューティング
+## Troubleshooting
 **1. `Permission denied` エラー**
 
-**原因:** SSH接続の認証キーのパスが正しくありませんでした。
+[誤]
+[webservers]
+# XX.XX.XX.XX
+XX.XX.XX.XX ansible_user=ubuntu ansible_ssh_private_key_file=/path/to/your/aws-key.pem
 
+[正]
+[webservers]
+# XX.XX.XX.XX
+XX.XX.XX.XX ansible_user=ubuntu ansible_ssh_private_key_file="/path/to/your/aws-key.pem"
 
 **解決策:** `hosts.ini`ファイルに、秘密鍵のパスをダブルクォーテーションで囲んで指定することで解決しました。
