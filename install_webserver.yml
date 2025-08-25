@@ -1,0 +1,38 @@
+- name: Webサーバーのインストールと設定
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: パッケージリストを更新する
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Apacheをインストールする
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+
+    - name: Apacheサービスを起動し、自動起動を有効にする
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: index.htmlファイルを配置する
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Ansibleでデプロイ！</title>
+            <meta charset="UTF-8">
+          </head>
+          <body>
+            <h1>Hello, World! (Ansible)</h1>
+            <p>このページはAnsibleで自動的にデプロイされました。</p>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
