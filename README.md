@@ -1,35 +1,44 @@
-# AWS Webサーバーデプロイプロジェクト
+# Ansible Webサーバー構築 Playbook
+このPlaybookは、AWS上のEC2インスタンスにWebサーバー（Apache）を自動で構築するためのものです。
 
-このプロジェクトは、Ansibleを使ってAWSのEC2インスタンスにWebサーバーを自動デプロイするものです。
+1. プロジェクト概要
+このリポジトリには、以下の2つのファイルが含まれています。
+・inventory.ini: ターゲットとなるサーバーの情報を記載
+・playbook.yml: サーバー構築の手順を定義
 
-##このプロジェクトの目的：Ansibleを使ってAWSサーバーにWebサーバーを自動デプロイするプロジェクトです。  
-##作った理由：インフラ自動化の学習のため、Vagrantに続き、より実践的なAWS環境で検証を行いました。  
-##動かし方：「hosts.ini」と「install_webserver.yml」を使って、Ansibleのコマンドで実行する方法を記載します。  
----
-**手順**
+3. 事前準備
+このPlaybookを実行する前に、以下の準備が必要です。
+・Ansibleのインストール: Ansibleが実行できる環境を用意してください。
+・AWS CLIの設定: AWSアカウントの認証情報が設定済みであることを確認してください。
+・SSHキーペア: EC2インスタンスに接続するためのキーペア（.pemファイル）を用意してください。
 
-1. AWS上での手順
-**ステップ1: EC2インスタンスの準備
-# まず、WebサーバーをデプロイするためのAWSのEC2インスタンスを立ち上げる必要があります。
-AWSマネジメントコンソールにログイン: AWSアカウントを持っていない場合は、先に作成します。
-EC2ダッシュボードへ移動: EC2インスタンスを起動する。OSは、Vagrantで使ったものと同じUbuntuを選ぶとスムーズです。
-セキュリティグループの設定: SSH接続とWebアクセス（HTTP）を許可するように、セキュリティグループのルールを設定します。
-SSH (ポート22): 君のPCのIPアドレスからのみ許可します。
-HTTP (ポート80): どこからでもアクセスできるように許可します。
-キーペアの作成: SSH接続に使うキーペアを作成して、秘密鍵（.pemファイル）をご自身のPCにダウンロードします。この秘密鍵は、AnsibleからのSSH接続に必要になるから、大切に保管してください。
+4. 実行方法
+以下のコマンドを実行することで、Webサーバーが構築されます。
 
+ansible-playbook -i inventory.ini playbook.yml
 
+4. Playbookの内容
+inventory.ini
+実行対象のEC2インスタンスのパブリックIPアドレスまたはDNS名を[webservers]グループに記載します。
 
----
-# Troubleshooting
-**1. `Permission denied` エラー**
-
-# [誤]
 [webservers]
-XX.XX.XX.XX ansible_user=ubuntu ansible_ssh_private_key_file=/path/to/your/aws-key.pem
+## ここにEC2インスタンスのDNS名またはパブリックIPアドレスを記載
+ec2-xx-xx-xx-xx.ap-northeast-1.compute.amazonaws.com ansible_ssh_private_key_file=/path/to/your-key.pem ansible_user=ec2-user
+```ansible_ssh_private_key_file`には、SSHキーペアのパスを、`ansible_user`には、接続するユーザー名（例：Amazon Linuxの場合は`ec2-user`）をそれぞれ指定します。
 
-# [正]
-[webservers]
-XX.XX.XX.XX ansible_user=ubuntu ansible_ssh_private_key_file=`"`/path/to/your/aws-key.pem`"`
+#### `playbook.yml`
 
-**解決策:** `hosts.ini`ファイルに、秘密鍵のパスをダブルクォーテーションで囲んで指定することで解決しました。
+Playbookは以下のタスクを実行します。
+
+1.  **`name: Install Apache`**: `yum`コマンドでApacheをインストールします。
+2.  **`name: Copy index.html`**: Webサーバーに表示する`index.html`を配置します。
+3.  **`name: Start and enable httpd service`**: Apacheサービスを起動し、サーバー起動時に自動で立ち上がるように設定します。
+4.  **`name: Check httpd status`**: Apacheサービスが正常に起動しているか確認します。
+
+---
+
+### 5. 今後の改善案
+
+* **HTTPS対応**: TLS/SSL証明書を設定してHTTPS化する。
+* **Webページ内容の動的化**: 静的なHTMLではなく、動的なコンテンツを生成できるようにする。
+* **Terraformとの連携**: Terraformを使ってEC2インスタンス自体を自動でプロビジョニングし、その後にAnsibleを実行する。
